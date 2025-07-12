@@ -10,6 +10,14 @@ const router = express.Router();
 // @access  Public
 router.get('/', async (req, res) => {
   try {
+    // Handle filtering by ids (for wishlist)
+    if (req.query.ids) {
+      const ids = req.query.ids.split(',').map(id => id.trim());
+      const products = await Product.find({ _id: { $in: ids }, isActive: true })
+        .populate('category', 'name')
+        .populate('brand', 'name');
+      return res.json({ products });
+    }
     const { page = 1, limit = 10, category, brand, search, sort = 'createdAt', order = 'desc' } = req.query;
     
     const query = { isActive: true };

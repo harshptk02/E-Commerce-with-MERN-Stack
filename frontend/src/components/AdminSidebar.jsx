@@ -2,11 +2,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useContext } from 'react';
 import { SidebarContext } from './AdminLayout';
+import { useState } from 'react';
 
 const AdminSidebar = () => {
   const location = useLocation();
   const { logout, user } = useAuth();
   const { sidebarOpen, setSidebarOpen } = useContext(SidebarContext);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const menuItems = [
     { path: '/admin', icon: 'bx bx-grid-alt', label: 'Dashboard', tooltip: 'Dashboard' },
@@ -18,7 +20,12 @@ const AdminSidebar = () => {
     { path: '/admin/profile', icon: 'bx bx-cog', label: 'Settings', tooltip: 'Settings' },
   ];
 
-  const handleLogout = () => logout();
+  const handleLogout = () => setShowLogoutModal(true);
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
+    logout();
+  };
+  const cancelLogout = () => setShowLogoutModal(false);
 
   return (
     <div className={`sidebar${sidebarOpen ? ' open' : ''}`}>
@@ -39,14 +46,40 @@ const AdminSidebar = () => {
         ))}
         <li className="profile">
           <div className="profile-details">
-            <img src="https://placehold.co/45x45" alt="profileImg" />
+            <img
+              src={user?.profilePhoto ?
+                (user.profilePhoto.startsWith('http') ? user.profilePhoto : `http://localhost:5000/uploads/${user.profilePhoto.replace(/^\\|\//, '')}`)
+                : 'https://placehold.co/45x45?text=User'}
+              alt="profileImg"
+            />
             <div className="name_job">
               <div className="name">{user?.name || 'const Genius'}</div>
-              <div className="job">Web Developer</div>
+              <div className="job">{user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Web Developer'}</div>
             </div>
           </div>
           <i className="bx bx-log-out" id="log_out" onClick={handleLogout}></i>
         </li>
+        {showLogoutModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+              <h2 className="text-lg font-bold mb-4">Are you sure you want to logout?</h2>
+              <div className="flex justify-center gap-4 mt-6">
+                <button
+                  className="px-4 py-2 rounded bg-gray-200"
+                  onClick={cancelLogout}
+                >
+                  No
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-red-600 text-white"
+                  onClick={confirmLogout}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </ul>
     </div>
   );

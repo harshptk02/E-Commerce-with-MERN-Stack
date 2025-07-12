@@ -93,38 +93,38 @@ const Home = () => {
       <section>
 
 
-        <div class="w-full relative">
-          <div class="swiper default-carousel swiper-container">
-            <div class="swiper-wrapper">
-              <div class="swiper-slide">
-                <div class="bg-[url('https://rukminim2.flixcart.com/fk-p-flap/3240/540/image/d4ed712237c93c98.jpg?q=60')] bg-cover bg-center bg-no-repeat h-96 flex justify-center items-center">
+        <div className="w-full relative">
+          <div className="swiper default-carousel swiper-container">
+            <div className="swiper-wrapper">
+              <div className="swiper-slide">
+                <div className="bg-[url('https://rukminim2.flixcart.com/fk-p-flap/3240/540/image/d4ed712237c93c98.jpg?q=60')] bg-cover bg-center bg-no-repeat h-96 flex justify-center items-center">
 
                 </div>
               </div>
-              <div class="swiper-slide">
-                <div class="bg-[url('https://rukminim2.flixcart.com/fk-p-flap/3240/540/image/2f3f2d4ce05074c7.jpeg?q=60')] bg-cover bg-center bg-no-repeat h-96 flex justify-center items-center">
+              <div className="swiper-slide">
+                <div className="bg-[url('https://rukminim2.flixcart.com/fk-p-flap/3240/540/image/2f3f2d4ce05074c7.jpeg?q=60')] bg-cover bg-center bg-no-repeat h-96 flex justify-center items-center">
 
                 </div>
               </div>
-              <div class="swiper-slide">
-                <div class="bg-[url('https://rukminim2.flixcart.com/fk-p-flap/3240/540/image/c67c045223c5be6d.jpg?q=60')] bg-cover bg-center bg-no-repeat h-96 flex justify-center items-center">
+              <div className="swiper-slide">
+                <div className="bg-[url('https://rukminim2.flixcart.com/fk-p-flap/3240/540/image/c67c045223c5be6d.jpg?q=60')] bg-cover bg-center bg-no-repeat h-96 flex justify-center items-center">
 
                 </div>
               </div>
             </div>
-            <div class="flex items-center gap-8 lg:justify-start justify-center">
-              <button id="slider-button-left" class="swiper-button-prev group !p-2 flex justify-center items-center border border-solid border-white !w-12 !h-12 transition-all duration-500 rounded-full !top-2/4 !-translate-y-8 !left-5 hover:bg-white " data-carousel-prev>
-                <svg class="h-5 w-5 text-white group-hover:text-black" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 16" fill="none">
-                  <path d="M10.0002 11.9999L6 7.99971L10.0025 3.99719" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            <div className="flex items-center gap-8 lg:justify-start justify-center">
+              <button id="slider-button-left" className="swiper-button-prev group !p-2 flex justify-center items-center border border-solid border-white !w-12 !h-12 transition-all duration-500 rounded-full !top-2/4 !-translate-y-8 !left-5 hover:bg-white " data-carousel-prev>
+                <svg className="h-5 w-5 text-white group-hover:text-black" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 16" fill="none">
+                  <path d="M10.0002 11.9999L6 7.99971L10.0025 3.99719" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <button id="slider-button-right" class="swiper-button-next group !p-2 flex justify-center items-center border border-solid border-white !w-12 !h-12 transition-all duration-500 rounded-full !top-2/4 !-translate-y-8  !right-5 hover:bg-white" data-carousel-next>
-                <svg class="h-5 w-5 text-white group-hover:text-black" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M5.99984 4.00012L10 8.00029L5.99748 12.0028" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              <button id="slider-button-right" className="swiper-button-next group !p-2 flex justify-center items-center border border-solid border-white !w-12 !h-12 transition-all duration-500 rounded-full !top-2/4 !-translate-y-8  !right-5 hover:bg-white" data-carousel-next>
+                <svg className="h-5 w-5 text-white group-hover:text-black" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M5.99984 4.00012L10 8.00029L5.99748 12.0028" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </div>
-            <div class="swiper-pagination"></div>
+            <div className="swiper-pagination"></div>
           </div>
         </div>
 

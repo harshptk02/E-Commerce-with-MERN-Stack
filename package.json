@@ -10,10 +10,19 @@
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "build": "cd frontend && npm run build"
   },
-  "keywords": ["mern", "e-commerce", "react", "nodejs", "mongodb"],
+  "keywords": [
+    "mern",
+    "e-commerce",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "recharts": "^3.1.0"
   }
-} 
+}

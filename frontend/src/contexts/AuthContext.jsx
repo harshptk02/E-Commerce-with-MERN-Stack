@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (userData) => {
     try {
-      const response = await axios.put(`/users/${user.id}`, userData)
+      const response = await axios.put('/users/me', userData)
       setUser(response.data)
       toast.success('Profile updated successfully')
       return { success: true }

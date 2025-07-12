@@ -9,29 +9,43 @@ import {
   FaChartLine,
   FaExclamationTriangle
 } from 'react-icons/fa'
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend
+} from 'recharts'
 
 const Dashboard = () => {
   // Fetch dashboard statistics
-  const { data: stats, isLoading } = useQuery('dashboardStats', async () => {
-    // In a real app, you'd have a dedicated endpoint for dashboard stats
-    // For now, we'll simulate the data
+  const { data: stats, isLoading, error } = useQuery('dashboardStats', async () => {
+    const res = await axios.get('/admin/dashboard');
+    // Map backend data to expected frontend structure
     return {
-      totalProducts: 156,
-      totalUsers: 1247,
-      totalOrders: 89,
-      totalRevenue: 45678.90,
-      recentOrders: [
-        { id: 1, customer: 'John Doe', amount: 299.99, status: 'pending' },
-        { id: 2, customer: 'Jane Smith', amount: 149.99, status: 'processing' },
-        { id: 3, customer: 'Bob Johnson', amount: 599.99, status: 'shipped' }
-      ],
-      lowStockProducts: [
-        { id: 1, name: 'Wireless Headphones', stock: 3 },
-        { id: 2, name: 'Smart Watch', stock: 1 },
-        { id: 3, name: 'Laptop Stand', stock: 2 }
-      ]
-    }
-  })
+      totalProducts: res.data.totalProducts,
+      totalUsers: res.data.totalUsers,
+      totalOrders: res.data.totalOrders,
+      totalRevenue: res.data.totalRevenue,
+      recentOrders: res.data.recentOrders.map(order => ({
+        id: order._id,
+        customer: order.user?.name || 'Unknown',
+        amount: order.total,
+        status: order.status
+      })),
+      lowStockProducts: res.data.lowStockProducts.map(product => ({
+        id: product._id,
+        name: product.name,
+        stock: product.stock
+      }))
+    };
+  });
+
+  // Fetch monthly revenue and order stats
+  const { data: overview, isLoading: loadingOverview } = useQuery('dashboardOverview', async () => {
+    const res = await axios.get('/admin/stats/overview');
+    // Format: [{ year, month, totalRevenue, orderCount }]
+    return res.data.stats.map(s => ({
+      ...s,
+      label: `${s.year}-${String(s.month).padStart(2, '0')}`
+    }));
+  });
 
   const StatCard = ({ title, value, icon: Icon, color }) => (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -57,6 +71,19 @@ const Dashboard = () => {
     )
   }
 
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Dashboard</h2>
+            <p className="text-gray-600">{error.message || 'Failed to load dashboard data.'}</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -66,6 +93,7 @@ const Dashboard = () => {
           <p className="text-gray-600">Welcome to your admin dashboard</p>
         </div>
 
+      
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
@@ -93,6 +121,45 @@ const Dashboard = () => {
             color="bg-purple-500"
           />
         </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue (Last 12 Months)</h3>
+            {loadingOverview ? (
+              <div className="text-center py-8">Loading chart...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={overview} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip formatter={v => `$${v.toLocaleString()}`} />
+                  <Legend />
+                  <Line type="monotone" dataKey="totalRevenue" stroke="#8884d8" name="Revenue" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Orders (Last 12 Months)</h3>
+            {loadingOverview ? (
+              <div className="text-center py-8">Loading chart...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={overview} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="orderCount" fill="#82ca9d" name="Orders" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
 
         {/* Recent Orders and Low Stock */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -157,24 +224,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
-              <FaBox className="mr-2" />
-              Add New Product
-            </button>
-            <button className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
-              <FaClipboardList className="mr-2" />
-              View Orders
-            </button>
-            <button className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
-              <FaChartLine className="mr-2" />
-              View Analytics
-            </button>
-          </div>
-        </div>
+       
       </div>
     </AdminLayout>
   )

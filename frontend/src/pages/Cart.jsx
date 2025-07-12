@@ -3,10 +3,20 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
 const Cart = () => {
-  const { cart, updateCartItem, removeFromCart, getCartTotal } = useCart()
+  const { cart, updateCartItem, removeFromCart, getCartTotal, loading } = useCart();
   const navigate = useNavigate()
   const [updating, setUpdating] = useState(null)
   const [removing, setRemoving] = useState(null)
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          Loading cart...
+        </div>
+      </div>
+    );
+  }
 
   const handleQuantityChange = async (productId, quantity) => {
     setUpdating(productId)

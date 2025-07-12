@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCart } from '../contexts/CartContext'
 import { useWishlist } from '../contexts/WishlistContext'
@@ -12,6 +12,7 @@ const ProductCard = ({ product }) => {
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist()
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsWishlisted(wishlist.includes(product._id))
@@ -37,7 +38,10 @@ const ProductCard = ({ product }) => {
     }
     setIsAddingToCart(true)
     try {
-      await addToCart(product._id, 1)
+      const result = await addToCart(product._id, 1)
+      if (result.success) {
+        navigate('/cart')
+      }
     } finally {
       setIsAddingToCart(false)
     }

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { FaDownload } from 'react-icons/fa';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -22,6 +25,47 @@ const Orders = () => {
     };
     fetchOrders();
   }, []);
+
+  const generateInvoice = (order) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Order Invoice', 14, 18);
+    doc.setFontSize(12);
+    doc.text(`Order #: ${order._id}`, 14, 28);
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 36);
+    doc.text(`Payment Method: ${order.paymentMethod}`, 14, 44);
+
+    // Shipping Address
+    doc.setFontSize(14);
+    doc.text('Shipping Address:', 14, 54);
+    doc.setFontSize(12);
+    const addr = order.shippingAddress || {};
+    doc.text(`Name: ${addr.name || 'N/A'}`, 14, 62);
+    doc.text(`Phone: ${addr.phone || 'N/A'}`, 14, 68);
+    doc.text(`Address: ${addr.address || 'N/A'}`, 14, 74);
+    doc.text(`City: ${addr.city || 'N/A'}`, 14, 80);
+    doc.text(`Postal Code: ${addr.postalCode || 'N/A'}`, 14, 86);
+    doc.text(`Country: ${addr.country || 'N/A'}`, 14, 92);
+
+    // Items Table
+    autoTable(doc, {
+      startY: 100,
+      head: [['Product', 'Qty', 'Price', 'Total']],
+      body: order.items.map(item => [
+        item.product?.name || 'Product',
+        item.quantity,
+        `$${item.price.toFixed(2)}`,
+        `$${(item.price * item.quantity).toFixed(2)}`
+      ]),
+    });
+
+    // Totals
+    const finalY = doc.lastAutoTable?.finalY || 120;
+    doc.setFontSize(14);
+    doc.text(`Total: $${order.total?.toFixed(2) || 'N/A'}`, 14, finalY + 10);
+
+    doc.save(`invoice_${order._id}.pdf`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -60,12 +104,19 @@ const Orders = () => {
                     <td className="px-4 py-2 whitespace-nowrap font-semibold">${order.total?.toFixed(2)}</td>
                     <td className="px-4 py-2 whitespace-nowrap capitalize">{order.paymentMethod} <span className={`ml-2 text-xs px-2 py-1 rounded ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{order.paymentStatus}</span></td>
                     <td className="px-4 py-2 whitespace-nowrap capitalize">{order.status}</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
+                    <td className="px-4 py-2 whitespace-nowrap flex gap-2 items-center">
                       <button
                         className="text-blue-600 hover:underline"
                         onClick={() => setSelectedOrder(order)}
                       >
                         View
+                      </button>
+                      <button
+                        className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 shadow transition"
+                        onClick={() => generateInvoice(order)}
+                        title="Download Invoice"
+                      >
+                        <FaDownload size={14} />
                       </button>
                     </td>
                   </tr>

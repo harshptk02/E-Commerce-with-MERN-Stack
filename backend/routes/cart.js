@@ -8,27 +8,30 @@ const router = express.Router();
 // In-memory cart storage (in production, use Redis or database)
 let carts = new Map();
 
+// Helper to get detailed cart
+async function getDetailedCart(userCart) {
+  const detailedCart = await Promise.all(userCart.map(async (item) => {
+    const product = await Product.findById(item.productId);
+    if (!product) return null;
+    return {
+      _id: product._id,
+      name: product.name,
+      images: product.images,
+      price: product.price,
+      stock: product.stock,
+      quantity: item.quantity
+    };
+  }));
+  return detailedCart.filter(Boolean);
+}
+
 // @route   GET /api/cart
 // @desc    Get user cart
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
     const userCart = carts.get(req.user.id) || [];
-    // Fetch product details for each cart item
-    const detailedCart = await Promise.all(userCart.map(async (item) => {
-      const product = await Product.findById(item.productId);
-      if (!product) return null;
-      return {
-        _id: product._id,
-        name: product.name,
-        images: product.images,
-        price: product.price,
-        stock: product.stock,
-        quantity: item.quantity
-      };
-    }));
-    // Filter out any nulls (products that no longer exist)
-    res.json(detailedCart.filter(Boolean));
+    res.json(await getDetailedCart(userCart));
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server error' });
@@ -65,7 +68,7 @@ router.post('/add', [auth, [
     }
     
     carts.set(userId, userCart);
-    res.json(userCart);
+    res.json(await getDetailedCart(userCart));
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server error' });
@@ -94,7 +97,7 @@ router.put('/update', [auth, [
     if (itemIndex > -1) {
       userCart[itemIndex].quantity = quantity;
       carts.set(userId, userCart);
-      res.json(userCart);
+      res.json(await getDetailedCart(userCart));
     } else {
       res.status(404).json({ message: 'Item not found in cart' });
     }
@@ -116,7 +119,7 @@ router.delete('/remove/:productId', auth, async (req, res) => {
     userCart = userCart.filter(item => item.productId !== productId);
     
     carts.set(userId, userCart);
-    res.json(userCart);
+    res.json(await getDetailedCart(userCart));
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server error' });

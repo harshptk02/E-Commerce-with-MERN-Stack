@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import axios from 'axios'
 import AdminLayout from '../../components/AdminLayout'
-import { FaEye, FaCheck, FaTimes } from 'react-icons/fa'
+import { FaEye, FaCheck, FaTimes, FaDownload } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const statusOptions = [
   'pending',
@@ -44,6 +46,47 @@ const AdminOrders = () => {
     setStatusLoading(true)
     updateStatusMutation.mutate({ orderId, status })
   }
+
+  const generateInvoice = (order) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Order Invoice', 14, 18);
+    doc.setFontSize(12);
+    doc.text(`Order #: ${order._id}`, 14, 28);
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 36);
+    doc.text(`Payment Method: ${order.paymentMethod}`, 14, 44);
+
+    // Shipping Address
+    doc.setFontSize(14);
+    doc.text('Shipping Address:', 14, 54);
+    doc.setFontSize(12);
+    const addr = order.shippingAddress || {};
+    doc.text(`Name: ${addr.name || 'N/A'}`, 14, 62);
+    doc.text(`Phone: ${addr.phone || 'N/A'}`, 14, 68);
+    doc.text(`Address: ${addr.address || 'N/A'}`, 14, 74);
+    doc.text(`City: ${addr.city || 'N/A'}`, 14, 80);
+    doc.text(`Postal Code: ${addr.postalCode || 'N/A'}`, 14, 86);
+    doc.text(`Country: ${addr.country || 'N/A'}`, 14, 92);
+
+    // Items Table
+    autoTable(doc, {
+      startY: 100,
+      head: [['Product', 'Qty', 'Price', 'Total']],
+      body: order.items.map(item => [
+        item.product?.name || 'Product',
+        item.quantity,
+        `$${item.price.toFixed(2)}`,
+        `$${(item.price * item.quantity).toFixed(2)}`
+      ]),
+    });
+
+    // Totals
+    const finalY = doc.lastAutoTable?.finalY || 120;
+    doc.setFontSize(14);
+    doc.text(`Total: $${order.total?.toFixed(2) || 'N/A'}`, 14, finalY + 10);
+
+    doc.save(`invoice_${order._id}.pdf`);
+  };
 
   if (isLoading) {
     return (
@@ -95,13 +138,20 @@ const AdminOrders = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(order.createdAt).toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2 items-center">
                       <button
                         onClick={() => setSelectedOrder(order)}
                         className="text-primary-600 hover:text-primary-900"
                         title="View Details"
                       >
                         <FaEye size={16} />
+                      </button>
+                      <button
+                        className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 shadow transition"
+                        onClick={() => generateInvoice(order)}
+                        title="Download Invoice"
+                      >
+                        <FaDownload size={14} />
                       </button>
                     </td>
                   </tr>
@@ -124,10 +174,11 @@ const AdminOrders = () => {
       {selectedOrder && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <div className="mt-3">
+            <div className="relative mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">
                 Order Details
               </h3>
+              
               <div className="mb-4">
                 <div className="flex justify-between mb-2">
                   <span className="font-semibold">Order #:</span>
@@ -149,9 +200,16 @@ const AdminOrders = () => {
                   <span className="font-semibold">Created At:</span>
                   <span>{new Date(selectedOrder.createdAt).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between mb-2">
+                <div className="flex justify-between mb-2 items-start">
                   <span className="font-semibold">Shipping Address:</span>
-                  <span>{selectedOrder.shippingAddress?.street}, {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.country}</span>
+                  <div className="text-gray-700 text-sm space-y-1 text-right">
+                    <div><span className="font-medium">Name:</span> {selectedOrder.shippingAddress?.name || 'N/A'}</div>
+                    <div><span className="font-medium">Phone:</span> {selectedOrder.shippingAddress?.phone || 'N/A'}</div>
+                    <div><span className="font-medium">Address:</span> {selectedOrder.shippingAddress?.address || 'N/A'}</div>
+                    <div><span className="font-medium">City:</span> {selectedOrder.shippingAddress?.city || 'N/A'}</div>
+                    <div><span className="font-medium">Postal Code:</span> {selectedOrder.shippingAddress?.postalCode || 'N/A'}</div>
+                    <div><span className="font-medium">Country:</span> {selectedOrder.shippingAddress?.country || 'N/A'}</div>
+                  </div>
                 </div>
               </div>
               <div className="mb-4">

@@ -68,7 +68,13 @@ const Navbar = () => {
                 {/* User Menu */}
                 <div className="relative group">
                   <button className="flex items-center text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
-                    <FaUser className="inline-block mr-1" />
+                    <img
+                      src={user.profilePhoto ?
+                        (user.profilePhoto.startsWith('http') ? user.profilePhoto : `http://localhost:5000/uploads/${user.profilePhoto.replace(/^\\|\//, '')}`)
+                        : 'https://placehold.co/32x32?text=U'}
+                      alt={user.name}
+                      className="h-7 w-7 rounded-full object-cover border mr-2"
+                    />
                     {user.name}
                   </button>
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">

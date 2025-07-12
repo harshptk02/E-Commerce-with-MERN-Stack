@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { FaHeart, FaShoppingCart, FaStar } from 'react-icons/fa'
@@ -17,6 +17,7 @@ const ProductDetail = () => {
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist()
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -62,7 +63,10 @@ const ProductDetail = () => {
     }
     setIsAddingToCart(true)
     try {
-      await addToCart(product._id, 1)
+      const result = await addToCart(product._id, 1)
+      if (result.success) {
+        navigate('/cart')
+      }
     } finally {
       setIsAddingToCart(false)
     }

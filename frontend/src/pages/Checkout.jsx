@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Checkout = () => {
   const { cart, getCartTotal, clearCart, loading } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [shipping, setShipping] = useState({
     name: '', address: '', city: '', postalCode: '', country: '', phone: ''
@@ -13,6 +15,16 @@ const Checkout = () => {
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
   const [paid, setPaid] = useState(false);
+
+  // Pre-fill shipping address from user profile
+  useEffect(() => {
+    if (user && user.shippingAddress) {
+      setShipping(prev => ({
+        ...prev,
+        ...user.shippingAddress
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setShipping({ ...shipping, [e.target.name]: e.target.value });

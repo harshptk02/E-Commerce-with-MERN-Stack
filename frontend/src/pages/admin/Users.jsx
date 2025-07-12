@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import axios from 'axios';
 
@@ -17,6 +17,7 @@ const AdminUsers = () => {
   const [editForm, setEditForm] = useState({ name: '', email: '', role: 'user' });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const fileInputRef = useRef();
 
   // Fetch users
   useEffect(() => {
@@ -24,7 +25,7 @@ const AdminUsers = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await axios.get(`/api/users?page=${page}&limit=${PAGE_SIZE}&search=${search}`);
+        const res = await axios.get(`/users?page=${page}&limit=${PAGE_SIZE}&search=${search}`);
         setUsers(res.data.users);
         setTotalPages(res.data.totalPages);
       } catch (err) {
@@ -48,11 +49,21 @@ const AdminUsers = () => {
     setSaving(true);
     setError('');
     try {
-      await axios.put(`/api/users/${selectedUser._id}`, editForm);
+      let updatedForm = { ...editForm };
+      // If a new photo is selected, upload it first
+      if (fileInputRef.current && fileInputRef.current.files[0]) {
+        const formData = new FormData();
+        formData.append('image', fileInputRef.current.files[0]);
+        const uploadRes = await axios.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        updatedForm.profilePhoto = uploadRes.data.url;
+      }
+      await axios.put(`/users/${selectedUser._id}`, updatedForm);
       setShowEditModal(false);
       setSelectedUser(null);
       // Refresh users
-      const res = await axios.get(`/api/users?page=${page}&limit=${PAGE_SIZE}&search=${search}`);
+      const res = await axios.get(`/users?page=${page}&limit=${PAGE_SIZE}&search=${search}`);
       setUsers(res.data.users);
       setTotalPages(res.data.totalPages);
     } catch (err) {
@@ -73,11 +84,11 @@ const AdminUsers = () => {
     setDeleting(true);
     setError('');
     try {
-      await axios.delete(`/api/users/${selectedUser._id}`);
+      await axios.delete(`/users/${selectedUser._id}`);
       setShowDeleteModal(false);
       setSelectedUser(null);
       // Refresh users
-      const res = await axios.get(`/api/users?page=${page}&limit=${PAGE_SIZE}&search=${search}`);
+      const res = await axios.get(`/users?page=${page}&limit=${PAGE_SIZE}&search=${search}`);
       setUsers(res.data.users);
       setTotalPages(res.data.totalPages);
     } catch (err) {
@@ -119,6 +130,7 @@ const AdminUsers = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Photo</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
@@ -128,6 +140,15 @@ const AdminUsers = () => {
                 <tbody className="bg-white divide-y divide-gray-100">
                   {users.map((user) => (
                     <tr key={user._id}>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <img
+                          src={user.profilePhoto ?
+                            (user.profilePhoto.startsWith('http') ? user.profilePhoto : `http://localhost:5000/uploads/${user.profilePhoto.replace(/^\\|\//, '')}`)
+                            : 'https://placehold.co/40x40?text=User'}
+                          alt={user.name}
+                          className="h-8 w-8 object-cover rounded-full border"
+                        />
+                      </td>
                       <td className="px-4 py-2 whitespace-nowrap">{user.name}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{user.email}</td>
                       <td className="px-4 py-2 whitespace-nowrap capitalize">{user.role}</td>
@@ -178,6 +199,21 @@ const AdminUsers = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Edit User</h2>
             <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <img
+                  src={editForm.profilePhoto ?
+                    (editForm.profilePhoto.startsWith('http') ? editForm.profilePhoto : `http://localhost:5000/uploads/${editForm.profilePhoto.replace(/^\\|\//, '')}`)
+                    : 'https://placehold.co/64x64?text=User'}
+                  alt={editForm.name}
+                  className="h-12 w-12 object-cover rounded-full border"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="block text-sm text-gray-500"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
                 <input

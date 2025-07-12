@@ -36,13 +36,14 @@ router.post('/add', [auth, [
     const userId = req.user.id;
     
     let userWishlist = wishlists.get(userId) || [];
-    
+    console.log('POST /wishlist/add called with:', req.body);
+    console.log('Before add:', userWishlist);
     // Check if product already exists in wishlist
     if (!userWishlist.includes(productId)) {
       userWishlist.push(productId);
       wishlists.set(userId, userWishlist);
     }
-    
+    console.log('After add:', userWishlist);
     res.json(userWishlist);
   } catch (error) {
     console.error(error.message);
